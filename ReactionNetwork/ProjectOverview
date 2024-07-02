@@ -1,0 +1,5 @@
+Jordi has stored do the paper 0909.2908 analysis.
+Need an algo that works with Jordi files, and build the rate equations for 750 particles.
+
+Initial conditions could be obtained from Hydro or SHM.
+Could build on top of hydro to evolve
