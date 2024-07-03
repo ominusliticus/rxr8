@@ -16,7 +16,7 @@
 //  - Looping over span tree can be made parallel by having multiple threads loop over tree and making input variable an
 //  atomic.
 //  - Needs an detailed balance contribution for each reaction (i.e., every decay should have its corresponding inverse
-//  dacay)
+//  decay)
 
 /// @brief Structure that stores and evolves the densities of particles
 /// @details This class provides the functionality that stores a list of particles, their initial densities and then
@@ -27,7 +27,7 @@ class ReactionNetwork
 	ReactionNetwork() = default;
 	ReactionNetwork(std::string_view decays_file);
 
-	/// TODO: Add version that takes a dictionary and another that has an interable container
+	/// TODO: Add version that takes a dictionary and another that has an iterable container
 	void set_initial(std::string const& file);    // set all initial values
 	void time_step(double dt, RK4Stage stage);    // Perform a single time step, involves traversing spanning tree
 	void finish_time_step();                      // Update densities based on input and set input to zero
@@ -40,7 +40,7 @@ class ReactionNetwork
 /// @param decays_file path to file storing the reaction information sheet in mass-ordering form
 /// @details This class provides the functionality that stores a list of particles, their initial densities and then
 /// integrates their rate equations in time using a Runge-Kutta 4th order time-stepping scheme. Function can fail due to
-/// file not exsint, and will terminate program
+/// file not exist, and will terminate program
 inline ReactionNetwork::ReactionNetwork(std::string_view decays_file)
 {
 	std::fstream fin(decays_file.data(), std::fstream::in);
@@ -90,9 +90,9 @@ inline ReactionNetwork::ReactionNetwork(std::string_view decays_file)
 	// build_minimum_spanning_tree(m_dict[first_pid]);
 }
 
-/// @brief Takes an initial condition file and initializes all the density for the reaction newtork
+/// @brief Takes an initial condition file and initializes all the density for the reaction network
 /// @details Function can fail, and results in termination of the program
-/// @param file std::string of file containing initial conditon file
+/// @param file std::string of file containing initial condition file
 inline void
 ReactionNetwork::set_initial(std::string const& file)
 {
@@ -118,7 +118,7 @@ ReactionNetwork::time_step(double dt, RK4Stage stage)
 		particle->propagate(dt, stage);
 }
 
-/// @brief Combine the inidividual Runge-Kutte 4th order stages to preform update of particle densities after one full
+/// @brief Combine the individual Runge-Kutte 4th order stages to preform update of particle densities after one full
 /// time step
 inline void
 ReactionNetwork::finish_time_step()

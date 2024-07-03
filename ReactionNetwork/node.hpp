@@ -3,14 +3,14 @@
 #include <string>
 #include <vector>
 
-/// @brief Enum class that conveniently inidcates which Runge-Kutta 4th order stage to perform
+/// @brief Enum class that conveniently indicates which Runge-Kutta 4th order stage to perform
 enum class RK4Stage { FIRST, SECOND, THIRD, FOURTH };
 
-/// @brief Stores the paticle ID and reactions, and facilitates density updates
+/// @brief Stores the particle ID and reactions, and facilitates density updates
 /// @details Stores the particle ID, (for now, only the) decay width, and list of daughters with the corresponding
 /// branching ratio (will contain other reaction rates in the future). Daughters are stored within the `ReactionInfo`
-/// structure, and just consists of a list of shared pointers to the daugther particles. Here the design choice was
-/// such that the `Node` class did not have to be aware of the paritcle dictionary in the `ReactionNetwork` class.
+/// structure, and just consists of a list of shared pointers to the daughter particles. Here the design choice was
+/// such that the `Node` class did not have to be aware of the particle dictionary in the `ReactionNetwork` class.
 /// The class also contains facilities that interoperate with the `ReactionNetwork` class to perform time-stepping
 /// in a self-consistent way: that is, the first stage of of Runge-Kutta should be completed before the second starts
 /// and so on.
