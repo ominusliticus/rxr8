@@ -90,6 +90,8 @@ Each instance represents a unique particle (pid), and stores the information abo
 
 ### `Particle` constructors
 
+Takes information from particle data sheets and converts into an particle instance
+
 #### Signature and return value
 
 ```c++
