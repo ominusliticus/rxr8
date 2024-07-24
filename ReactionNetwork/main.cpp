@@ -1,4 +1,6 @@
+#include "particle.hpp"
 #include "print.hpp"
+#include "reaction_info.hpp"
 #include "reaction_network.hpp"
 #include "string_utility.hpp"
 

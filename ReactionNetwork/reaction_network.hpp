@@ -10,7 +10,8 @@
 #include "print.hpp"
 #include "string_utility.hpp"
 
-#include "node.hpp"
+#include "particle.hpp"
+#include "reaction_info.hpp"
 
 // Ideas:
 //  - Looping over span tree can be made parallel by having multiple threads loop over tree and making input variable an
@@ -33,7 +34,7 @@ class ReactionNetwork
 	void finish_time_step();                      // Update densities based on input and set input to zero
 
 	private:
-	std::unordered_map<long, std::shared_ptr<Node>> m_dict;
+	std::unordered_map<long, std::shared_ptr<Particle>> m_dict;
 };
 
 /// @brief Constructor for structure that stores and evolves the densities of particles
@@ -64,7 +65,7 @@ inline ReactionNetwork::ReactionNetwork(std::string_view decays_file)
 		if (!first_pid) first_pid = pid;
 
 		if (m_dict.contains(pid)) m_dict[pid]->decay_width = width;
-		else m_dict[pid] = std::make_shared<Node>(pid, width);
+		else m_dict[pid] = std::make_shared<Particle>(pid, width);
 		for (int i{ 0 }; i < num_decays; ++i)
 		{
 			std::getline(fin, line);
@@ -72,18 +73,18 @@ inline ReactionNetwork::ReactionNetwork(std::string_view decays_file)
 			auto n_daughters{ std::stoi(entries[1]) };
 			auto br{ std::stod(entries[2]) };
 
-			std::vector<std::shared_ptr<Node>> daughters;
+			std::vector<std::shared_ptr<Particle>> daughters;
 			for (int n = 0; n < n_daughters; ++n)
 			{
 				auto daughter_pid{ std::stol(entries[4 + n]) };
 				if (m_dict.contains(daughter_pid)) daughters.push_back(m_dict[daughter_pid]);
 				else
 				{
-					m_dict[daughter_pid] = std::make_shared<Node>(daughter_pid, 0.0);
+					m_dict[daughter_pid] = std::make_shared<Particle>(daughter_pid, 0.0);
 					daughters.push_back(m_dict[daughter_pid]);
 				}
 			}
-			Node::ReactionInfo ri{ .branching_ratio = br, .decay_products = std::move(daughters) };
+			ReactionInfo ri{ .branching_ratio = br, .decay_products = std::move(daughters) };
 			m_dict[pid]->reaction_infos.push_back(std::move(ri));
 		}
 	}
