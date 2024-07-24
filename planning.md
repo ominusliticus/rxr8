@@ -35,7 +35,7 @@ Used to determine what particle distribution needs to be used to calculate the e
 
 <!-- ==================================================================== -->
 
-# `ReactionInfo` class
+# `ReactionInfo` structure
 
 This class stores reaction parameters, reactants, and products for a given reaction that a particle can undergo.
 Every particle, owns a list of `ReactionInfo`s that is looped over during time stepping.
@@ -68,7 +68,7 @@ calculate(double density, double eq_density, double dt, double temperature) -> v
 
 <!-- ==================================================================== -->
 
-# `Particle` class
+# `Particle` structure 
 
 The main ingredient in the reaction network.
 Each instance represents a unique particle (pid), and stores the information about all its possible reactants and products, and the reaction strength
@@ -80,6 +80,7 @@ Each instance represents a unique particle (pid), and stores the information abo
 - `mass`: (`double`) mass of the particle; needed to calculate the equilibrium density
 - `temperature`: (`double`) the background temperature used to calculate the equilibrium density
 - `degeneracy`: (`double`) the spin, isospin, and other internal d.o.f. degeneracy for the particle being considered
+- `decay_width`: (`double`) a fundamental property of every unstable particle
 - `density`: (`double`) the density of the particle being evolved
 - `eq_density`: (`double`) the member variable that stores the equilibrium density for every time step
 - `already_visited`: (`bool`) a variable that is reset at the end of every time step and keeps track of which equilibrium densities have already been calculated while iterating through the particle list
@@ -90,7 +91,7 @@ Each instance represents a unique particle (pid), and stores the information abo
 
 ### `Particle` constructors
 
-Takes information from particle data sheets and converts into an particle instance
+Takes information from particle data sheets and converts into a `Particle` instance
 
 #### Signature and return value
 
@@ -99,6 +100,12 @@ Particle(long pid_, double mass_, double degeneracy_, SpinStat spin_stat_)
 ```
 
 #### Function parameters
+
+- `pid_`: (`long`) the unique identifier for the particle in the PDG
+- `mass_`: (`double`) the mass of the particle, expected in MeV
+- `degeneracy_`: (`double`) the spin, isospin, and other internal d.o.f. degeneracy for the particle being considered
+- `spin_stat_`: (`SpinStat`) determines what distribution to use to calculate the equilibrium density
+- `decay_width`: (`double`) a fundamental property of all unstable particles
 
 ### `Particle::update`
 
@@ -111,6 +118,10 @@ update(double delta_density, double dt, RK4Stage stage) -> void
 ```
 #### Function parameters
 
+- `delta_density`: (`double`) the contribution calculated by `ReactionInfo::calculate` 
+- `dt`: (`double`) the time step size
+- `stage`: (`RK4Stage`) determines which variable, `k1` through `k4`, the `delta_density` contributes to
+
 ### `Particle::finalize_time_step`
 
 Combines the four stages and sets `k1` through `k4` to zero for the next time step.
@@ -121,5 +132,55 @@ Also marks `already_visited` as false so the equilibrium densities can be calcul
 ```c++
 finalize_time_step(void) -> void
 ```
+<!-- ==================================================================== -->
 
-#### Function parameters
+# `ReactionNetwork` class
+
+This class stores the list of particles in a reaction network and controls the time evolution of the system.
+This class does not have its own event loop.
+It is intended to be run within another code that does the background temperature evolution, and therefore, an external loop over time has to be introduced.
+
+## Member variables
+
+- `m_particles`: (`std::unordered_map<long, std::shared_ptr<Particle>>`) dictionary of all particles in the simulation/calculation. Necessary for getting proper pointer addresses for all particles when constructing the reaction network
+
+## Member functions
+
+### `ReactionNetwork` constructors
+
+Takes paths to files containing particle info and reaction info and populates the reaction network
+
+### Signature and return value
+
+```c++
+ReactionNetwork(std::string_view particle_datasheet, std::string_view particle_reactions)
+```
+
+### Function parameters
+
+- `particle_datasheet`: (`std::string_view`) path to file contain particle information such as mass, decay width, and degeneracy
+
+### `ReactionNetwork::time_step` 
+
+Loop through particle list and update all stages of RK4 variables 
+
+### Signature and return value
+
+```c++
+ReactionNetwork::time_step(double dt, double temperature) -> void
+```
+
+### Function parameters
+
+- `dt`: (`double`) the size of the current time step
+- `temperature`: (`double`) the temperature at the current time step
+
+### `ReactionNetwork::finalize_time_step`
+
+Iterate through particle list to update densities, zero out RK4 stage variables, and reset `already_visted` flags.
+
+### Signature and return value
+
+```c++
+finalize_time_step(void) -> void
+```
