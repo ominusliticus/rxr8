@@ -27,15 +27,10 @@ struct ReactionInfo {
 	/// for a reaction of type `type`. The expected order of the parameters is as follows
 	/// 	- Type::DECAY:
 	///         Expected arguments: (current_density,)
-	void calculate(double density, double eq_density, double dt, double temperature);
+	void calculate(double density, double eq_density, double dt, double temperature, RK4Stage);
 
 	ReactionType                           reaction_type;
 	double                                 reaction_rate;
 	std::vector<std::shared_ptr<Particle>> reactants;
 	std::vector<std::shared_ptr<Particle>> products;
 };
-
-inline void
-ReactionInfo::calculate(double density, double eq_density, double dt, double temperature)
-{
-}

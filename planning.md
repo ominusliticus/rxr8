@@ -56,7 +56,7 @@ Calculates the `delta_density` given the time step `dt` and background temperatu
 
 #### Signature and return value
 ```c++
-calculate(double density, double eq_density, double dt, double temperature) -> void
+calculate(double density, double eq_density, double dt, double temperature, RK4Stage stage) -> void
 ```
 
 #### Function parameters
@@ -65,6 +65,7 @@ calculate(double density, double eq_density, double dt, double temperature) -> v
 - `eq_density`: (`double`) the equilibrium density, given temperature `temperature`, for the particle _owning_ this instance of `ReactionInfo`
 - `dt`: (`double`) the time step size
 - `temperature`: (`double`) the background temperature
+- `stage`: (`RK4Stage`) the background temperature
 
 <!-- ==================================================================== -->
 
@@ -132,6 +133,21 @@ Also marks `already_visited` as false so the equilibrium densities can be calcul
 ```c++
 finalize_time_step(void) -> void
 ```
+
+### `Particle::get_eq_density` 
+
+If the equilibrium density has not been calculated yet, calculate it and return it, else just return the already calculated equilibrium density
+
+#### Signature and return value
+
+```c++
+get_eq_density(double temperature) -> double
+```
+
+##### Function parameters
+
+- `temperature`: (`double`) the temperature to calculate the equilibrium density
+
 <!-- ==================================================================== -->
 
 # `ReactionNetwork` class
