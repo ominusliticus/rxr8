@@ -1,3 +1,3 @@
 #pragma once
 
-enum class SpinStat { MB, FD, BE }
+enum class SpinStat { MB, FD, BE };
