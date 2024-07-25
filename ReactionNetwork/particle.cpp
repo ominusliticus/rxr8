@@ -3,76 +3,88 @@
 inline void
 Particle::finish_time_step(void)
 {
-	density += (k1 + 2.0 * k2 + 2.0 * k3 + k4) / 6, 0;
+	m_density += (k1 + 2.0 * k2 + 2.0 * k3 + k4) / 6.0;
 	k1 = k2 = k3 = k4 = 0.0;
-	already_visited   = false;
+	m_already_visited = false;
 }
 
 inline void
-Particle::update(double dt, double temperature, RK4Stage stage)
+Particle::update(double delta_density, double dt, RK4Stage stage)
 {
-	// if (!b_eq_density_set)
-	// {
-	// 	eq_density = gauss_quad(
-	// 	    [&](double q) -> double
-	// 	    {
-	// 		    double energy{ 0.0 };
-	// 		    if (std::fabs(temperature / mass) < 1e-2) energy = q * q / (2.0 * mass);
-	// 		    else energy = std::sqrt(q * q + mass * mass);
-
-	// 		    double f{ 0.0 };
-	// 		    switch (spin_type)
-	// 		    {
-	// 			    case ParticleSpin::BOLTZ :
-	// 			    {
-	// 				    double thermal_wavelength{ std::sqrt(2.0 * pi / (mass * temperature)) };
-	// 				    double norm{ 1.0 };
-	// 				    for (auto i{ 0 }; i < 3; ++i)
-	// 					    norm *= thermal_wavelength;
-	// 				    f = std::exp(energy / temperature) / norm;
-	// 				    break;
-	// 			    }
-	// 			    case ParticleSpin::FERMI :
-	// 			    {
-	// 				    f = 1.0 / (std::exp(energy / temperature) + 1.0);
-	// 				    break;
-	// 			    }
-	// 			    case ParticleSpin::BOSON :
-	// 			    {
-	// 				    f = 1.0 / (std::exp(energy / temperature) - 1.0);
-	// 				    break;
-	// 			    }
-	// 		    }
-
-	// 		    return degeneracy * f / (2.0 * pi * pi) / (hbar * hbar * hbar);
-	// 	    },
-	// 	    0.0,
-	// 	    inf,
-	// 	    1e-10,
-	// 	    3
-	// 	);
-	// 	b_eq_density_set = true;
-	// }
-	// auto decays = decay_width * density;
-	// /// TODO: Need to continue editting here
-	// auto inv_decays = 0.0;
-	// update(-decays, dt, stage);
-	// for (auto& info : reaction_infos)
-	// 	info.propagate(decays, dt, stage);
-	double *k;
 	switch (stage)
 	{
 		case RK4Stage::FIRST :
-			k = &k1;
+		{
+			k1 += dt * delta_density;
 			break;
+		}
 		case RK4Stage::SECOND :
-			k = &k2;
+		{
+			k2 += 0.5 * dt * delta_density;
 			break;
+		}
 		case RK4Stage::THIRD :
-			k = &k3;
+		{
+			k3 += 0.5 * dt * delta_density;
 			break;
+		}
 		case RK4Stage::FOURTH :
-			k = &k4;
+		{
+			k4 += dt * delta_density;
 			break;
+		}
 	}
+}
+
+double
+Particle::get_eq_density(double temperature)
+{
+	if (m_already_visited) return m_eq_density;
+
+	m_eq_density = gauss_quad(
+	    [&](double q) -> double
+	    {
+		    double energy{ 0.0 };
+		    if (std::fabs(temperature / m_mass) < 1e-2) energy = q * q / (2.0 * m_mass);
+		    else energy = std::sqrt(q * q + m_mass * m_mass);
+
+		    double f{ 0.0 };
+		    switch (m_spin_stat)
+		    {
+			    case SpinStat::MB :
+			    {
+				    double thermal_wavelength{ std::sqrt(2.0 * pi / (m_mass * temperature)) };
+				    double norm{ 1.0 };
+				    for (auto i{ 0 }; i < 3; ++i)
+					    norm *= thermal_wavelength;
+				    f = std::exp(energy / temperature) / norm;
+				    break;
+			    }
+			    case SpinStat::FD :
+			    {
+				    f = 1.0 / (std::exp(energy / temperature) + 1.0);
+				    break;
+			    }
+			    case SpinStat::BE :
+			    {
+				    f = 1.0 / (std::exp(energy / temperature) - 1.0);
+				    break;
+			    }
+		    }
+
+		    // Return density in units fm^{-3}
+		    return m_degeneracy * f / (2.0 * pi * pi) / (hbar * hbar * hbar);
+	    },
+	    0.0,
+	    inf,
+	    1e-10,
+	    3
+	);
+	return 0.0;
+}
+
+void
+Particle::add_reaction(ReactionInfo&& info)
+{
+	m_reaction_infos.push_back(std::move(info));
 }

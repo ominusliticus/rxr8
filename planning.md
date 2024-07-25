@@ -76,16 +76,15 @@ Each instance represents a unique particle (pid), and stores the information abo
 
 ## Member variables
 
-- `pid`: (`long`) the unique identifier assigned to each particle by particle physicists
-- `spin_stat`: (`SpinStat`) determines what distribution to use to calculate equilibrium density
-- `mass`: (`double`) mass of the particle; needed to calculate the equilibrium density
-- `temperature`: (`double`) the background temperature used to calculate the equilibrium density
-- `degeneracy`: (`double`) the spin, isospin, and other internal d.o.f. degeneracy for the particle being considered
-- `decay_width`: (`double`) a fundamental property of every unstable particle
-- `density`: (`double`) the density of the particle being evolved
-- `eq_density`: (`double`) the member variable that stores the equilibrium density for every time step
-- `already_visited`: (`bool`) a variable that is reset at the end of every time step and keeps track of which equilibrium densities have already been calculated while iterating through the particle list
-- `reaction_info`: (`std::vector<ReactionInfo>`) list of `ReactionInfo` instances that are used to calculate the density updates
+- `m_pid`: (`long`) the unique identifier assigned to each particle by particle physicists
+- `m_spin_stat`: (`SpinStat`) determines what distribution to use to calculate equilibrium density
+- `m_mass`: (`double`) mass of the particle; needed to calculate the equilibrium density
+- `m_degeneracy`: (`double`) the spin, isospin, and other internal d.o.f. degeneracy for the particle being considered
+- `m_decay_width`: (`double`) a fundamental property of every unstable particle
+- `m_density`: (`double`) the density of the particle being evolved
+- `m_eq_density`: (`double`) the member variable that stores the equilibrium density for every time step
+- `m_already_visited`: (`bool`) a variable that is reset at the end of every time step and keeps track of which equilibrium densities have already been calculated while iterating through the particle list
+- `m_reaction_info`: (`std::vector<ReactionInfo>`) list of `ReactionInfo` instances that are used to calculate the density updates
 - `k1`,`k2`,`k3`,`k4`: (`double`) {initialized to zero} stores the update values from each stage of the fourth-order Runge-Kutta scheme
 
 ## Member functions
@@ -97,16 +96,16 @@ Takes information from particle data sheets and converts into a `Particle` insta
 #### Signature and return value
 
 ```c++
-Particle(long pid_, double mass_, double degeneracy_, SpinStat spin_stat_)
+Particle(long pid_, double mass_, double degeneracy_, double decay_width, SpinStat spin_stat_)
 ```
 
 #### Function parameters
 
-- `pid_`: (`long`) the unique identifier for the particle in the PDG
-- `mass_`: (`double`) the mass of the particle, expected in MeV
-- `degeneracy_`: (`double`) the spin, isospin, and other internal d.o.f. degeneracy for the particle being considered
-- `spin_stat_`: (`SpinStat`) determines what distribution to use to calculate the equilibrium density
+- `pid`: (`long`) the unique identifier for the particle in the PDG
+- `mass`: (`double`) the mass of the particle, expected in MeV
+- `degeneracy`: (`double`) the spin, isospin, and other internal d.o.f. degeneracy for the particle being considered
 - `decay_width`: (`double`) a fundamental property of all unstable particles
+- `spin_stat`: (`SpinStat`) determines what distribution to use to calculate the equilibrium density
 
 ### `Particle::update`
 
@@ -147,6 +146,12 @@ get_eq_density(double temperature) -> double
 ##### Function parameters
 
 - `temperature`: (`double`) the temperature to calculate the equilibrium density
+
+
+### `Particle::add_reaction` 
+
+Intended to be used during the class instantiation stage.
+Pushes an instance of `ReactionInfo` onto `m_reaction_infos`.
 
 <!-- ==================================================================== -->
 
