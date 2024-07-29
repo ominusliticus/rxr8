@@ -34,10 +34,26 @@ print(Args&&... args)
 	std::cout << std::endl;
 }
 
+template<char delim, typename... Args>
+void
+print_delim(Args&&... args)
+{
+	((std::cout << std::forward<Args>(args) << delim), ...);
+	std::cout << std::endl;
+}
+
 template<typename Stream, typename... Args>
 void
 fprint(Stream& stream, Args&&... args)
 {
 	((stream << std::forward<Args>(args) << " "), ...);
+	stream << std::endl;
+}
+
+template<char delim, typename Stream, typename... Args>
+void
+fprint_delim(Stream& stream, Args&&... args)
+{
+	((stream << std::forward<Args>(args) << delim), ...);
 	stream << std::endl;
 }
