@@ -8,16 +8,12 @@
 #include <string_view>
 
 #include "print.hpp"
+#include "reaction_type.hpp"
+#include "rk4_stages.hpp"
 #include "string_utility.hpp"
 
 #include "particle.hpp"
 #include "reaction_info.hpp"
-
-// Ideas:
-//  - Looping over span tree can be made parallel by having multiple threads loop over tree and making input variable an
-//  atomic.
-//  - Needs an detailed balance contribution for each reaction (i.e., every decay should have its corresponding inverse
-//  decay)
 
 /// @brief Structure that stores and evolves the densities of particles
 /// @details This class provides the functionality that stores a list of particles, their initial densities and then
@@ -26,15 +22,13 @@ class ReactionNetwork
 {
 	public:
 	ReactionNetwork() = default;
-	ReactionNetwork(std::string_view decays_file);
+	ReactionNetwork(std::string_view particle_datasheet, std::string_view particle_reactions);
 
-	/// TODO: Add version that takes a dictionary and another that has an iterable container
-	void set_initial(std::string const& file);    // set all initial values
-	void time_step(double dt, RK4Stage stage);    // Perform a single time step, involves traversing spanning tree
-	void finish_time_step();                      // Update densities based on input and set input to zero
+	void time_step(double dt, double temperature);
+	void finalize_time_step();
 
 	private:
-	std::unordered_map<long, std::shared_ptr<Particle>> m_dict;
+	std::unordered_map<long, std::shared_ptr<Particle>> m_particles;
 };
 
 /// @brief Constructor for structure that stores and evolves the densities of particles
@@ -42,18 +36,34 @@ class ReactionNetwork
 /// @details This class provides the functionality that stores a list of particles, their initial densities and then
 /// integrates their rate equations in time using a Runge-Kutta 4th order time-stepping scheme. Function can fail due to
 /// file not exist, and will terminate program
-inline ReactionNetwork::ReactionNetwork(std::string_view decays_file)
+inline ReactionNetwork::ReactionNetwork(std::string_view particle_datasheet, std::string_view particle_deacys)
 {
-	std::fstream fin(decays_file.data(), std::fstream::in);
-	assert(fin.is_open() && "Decays file failed to open");
+	std::fstream fin(particle_datasheet.data(), std::fstream::in);
+	assert(fin.is_open() && "Reactions file failed to open");
 	std::string line;
+	// File layout (by column name) [all units in GeV]
+	// PID Name Mass Width Spin-Degen. B S c b I Iz Q Num-decays
+	while (!fin.eof())
+	{
+		std::getline(fin, line);
+		auto entries{ split_string(line) };
+		auto pid{ std::stol(entries[0]) };
+		auto mass{ std::stod(entries[2]) };
+		auto width{ std::stod(entries[3]) };
+		auto spin_degen{ std::stod(entries[4]) };
+		auto num_decays{ std::stoull(entries.back()) };
+		auto spin_stat{ static_cast<int>(spin_degen) % 2 == 0 ? SpinStat::FD : SpinStat::BE };
+
+		m_particles[pid] = std::make_shared<Particle>(pid, mass, spin_degen, width, spin_stat, num_decays);
+	}
+	fin.close();
+
+	fin.open(particle_deacys.data(), std::fstream::in);
+	assert(fin.is_open() && "Reactions file failed to open");
 	// File layout (by column name) [all units in GeV]
 	// PID Name Mass Width Spin B S Q C B I Iz Q No.-decays
 	// PID No.-daughters Branching-ratio PID-1 PID-2 PID-2 PID-4 PID-5
 
-	// Read in massorder file and parser into reaction network
-	long first_pid{ 0 };
-	// int  counter{ 0 };
 	while (!fin.eof())
 	{
 		std::getline(fin, line);
@@ -62,10 +72,6 @@ inline ReactionNetwork::ReactionNetwork(std::string_view decays_file)
 		auto width{ std::stod(entries[3]) };
 		auto num_decays{ std::stoi(entries.back()) };
 
-		if (!first_pid) first_pid = pid;
-
-		if (m_dict.contains(pid)) m_dict[pid]->decay_width = width;
-		else m_dict[pid] = std::make_shared<Particle>(pid, width);
 		for (int i{ 0 }; i < num_decays; ++i)
 		{
 			std::getline(fin, line);
@@ -73,57 +79,38 @@ inline ReactionNetwork::ReactionNetwork(std::string_view decays_file)
 			auto n_daughters{ std::stoi(entries[1]) };
 			auto br{ std::stod(entries[2]) };
 
-			std::vector<std::shared_ptr<Particle>> daughters;
+			std::vector<std::shared_ptr<Particle>> reactants{ m_particles[pid] };
+			std::vector<std::shared_ptr<Particle>> products;
 			for (int n = 0; n < n_daughters; ++n)
-			{
-				auto daughter_pid{ std::stol(entries[4 + n]) };
-				if (m_dict.contains(daughter_pid)) daughters.push_back(m_dict[daughter_pid]);
-				else
-				{
-					m_dict[daughter_pid] = std::make_shared<Particle>(daughter_pid, 0.0);
-					daughters.push_back(m_dict[daughter_pid]);
-				}
-			}
-			ReactionInfo ri{ .branching_ratio = br, .decay_products = std::move(daughters) };
-			m_dict[pid]->reaction_infos.push_back(std::move(ri));
+				products.push_back(m_particles[std::stol(entries[4 + n])]);
+			ReactionInfo ri{ .reaction_type = ReactionType::DECAY,
+				             .reaction_rate = br * width,
+				             .reactants     = std::move(reactants),
+				             .products      = std::move(products) };
+			m_particles[pid]->add_reaction(std::move(ri));
 		}
 	}
 	// build_minimum_spanning_tree(m_dict[first_pid]);
-}
-
-/// @brief Takes an initial condition file and initializes all the density for the reaction network
-/// @details Function can fail, and results in termination of the program
-/// @param file std::string of file containing initial condition file
-inline void
-ReactionNetwork::set_initial(std::string const& file)
-{
-	std::fstream fin(file.data(), std::fstream::in);
-	assert(fin.is_open() && "Initial condition file failed to open");
-	long   pid;
-	double density;
-
-	while (!fin.eof())
-	{
-		fin >> pid >> density;
-		m_dict[pid]->density = density;
-	}
 }
 
 /// @brief Preforms a partial time integration step of the Runge-Kutta 4th order algorithm
 /// @param double dt size of single time time step
 /// @param RK4Stage value from the enum class indicating which stage in the Runge-Kutta fourth order scheme to perform
 inline void
-ReactionNetwork::time_step(double dt, RK4Stage stage)
+ReactionNetwork::time_step(double dt, double temperature)
 {
-	for (auto [key, particle] : m_dict)
-		particle->propagate(dt, stage);
+	for (auto stage : std::vector<RK4Stage>{ RK4Stage::FIRST, RK4Stage::SECOND, RK4Stage::THIRD, RK4Stage::FOURTH })
+		for (auto [key, particle] : m_particles)
+			for (auto const& reaction : particle->get_reactions())
+				reaction
+				    .calculate(particle->get_density(), particle->get_eq_density(temperature), dt, temperature, stage);
 }
 
 /// @brief Combine the individual Runge-Kutte 4th order stages to preform update of particle densities after one full
 /// time step
 inline void
-ReactionNetwork::finish_time_step()
+ReactionNetwork::finalize_time_step()
 {
-	for (auto [key, particle] : m_dict)
-		particle->finish_time_step();
+	for (auto [key, particle] : m_particles)
+		particle->finalize_time_step();
 }

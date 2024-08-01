@@ -83,7 +83,7 @@ Each instance represents a unique particle (pid), and stores the information abo
 - `m_decay_width`: (`double`) a fundamental property of every unstable particle
 - `m_density`: (`double`) the density of the particle being evolved
 - `m_eq_density`: (`double`) the member variable that stores the equilibrium density for every time step
-- `m_already_visited`: (`bool`) a variable that is reset at the end of every time step and keeps track of which equilibrium densities have already been calculated while iterating through the particle list
+- `m_already_visited`: (`bool`) {initialized to `false`} a variable that is reset at the end of every time step and keeps track of which equilibrium densities have already been calculated while iterating through the particle list
 - `m_reaction_info`: (`std::vector<ReactionInfo>`) list of `ReactionInfo` instances that are used to calculate the density updates
 - `k1`,`k2`,`k3`,`k4`: (`double`) {initialized to zero} stores the update values from each stage of the fourth-order Runge-Kutta scheme
 
@@ -106,6 +106,7 @@ Particle(long pid_, double mass_, double degeneracy_, double decay_width, SpinSt
 - `degeneracy`: (`double`) the spin, isospin, and other internal d.o.f. degeneracy for the particle being considered
 - `decay_width`: (`double`) a fundamental property of all unstable particles
 - `spin_stat`: (`SpinStat`) determines what distribution to use to calculate the equilibrium density
+- `decay_channels`: (`std::size_t`) number of decay channels for particle
 
 ### `Particle::update`
 
@@ -133,6 +134,16 @@ Also marks `already_visited` as false so the equilibrium densities can be calcul
 finalize_time_step(void) -> void
 ```
 
+### `Particle::get_density` 
+
+Returns the current particle density
+
+#### Signature and return value
+
+```c++
+get_density() -> double
+```
+
 ### `Particle::get_eq_density` 
 
 If the equilibrium density has not been calculated yet, calculate it and return it, else just return the already calculated equilibrium density
@@ -152,6 +163,22 @@ get_eq_density(double temperature) -> double
 
 Intended to be used during the class instantiation stage.
 Pushes an instance of `ReactionInfo` onto `m_reaction_infos`.
+
+#### Signature and return value
+
+```c++
+get_density(void) -> double
+```
+
+### `Particle::get_reactions`
+
+Returns a handle to the reactions for the `std::vector` of `ReactionInfo`s
+
+##### Signature and return value
+
+```c++
+get_reactions(void) -> std::vector<ReactionInfo>&
+```
 
 <!-- ==================================================================== -->
 

@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstddef>
 #include <cstdio>
 #include <limits>
 #include <memory>
@@ -28,18 +29,23 @@ class Particle
 	public:
 	Particle() = default;
 
-	Particle(long pid, double mass, double degeneracy, double decay_width, SpinStat spin_stat)
-	{
-		m_pid        = pid;
-		m_mass       = mass;
-		m_degeneracy = degeneracy;
-		m_spin_stat  = spin_stat;
-	}
+	Particle(
+	    long        pid,
+	    double      mass,
+	    double      degeneracy,
+	    double      decay_width,
+	    SpinStat    spin_stat,
+	    std::size_t decay_channels
+	);
+
+	double get_density(void) { return m_density; }
 
 	void   update(double delta_density, double dt, RK4Stage stage);
-	void   finish_time_step(void);
+	void   finalize_time_step(void);
 	double get_eq_density(double temperature);
 	void   add_reaction(ReactionInfo&& info);
+
+	std::vector<ReactionInfo> const& get_reactions(void) const { return m_reaction_infos; }
 
 	public:
 	// Stages for 4th-order Runge-Kutta
@@ -55,6 +61,7 @@ class Particle
 	double                    m_eq_density;
 	double                    m_density;
 	double                    m_mass;
+	double                    m_decay_width;
 	double                    m_degeneracy;
 	std::vector<ReactionInfo> m_reaction_infos;
 	bool                      m_already_visited{ false };

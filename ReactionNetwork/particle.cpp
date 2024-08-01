@@ -1,7 +1,24 @@
 #include "particle.hpp"
 
+Particle::Particle(
+    long        pid,
+    double      mass,
+    double      degeneracy,
+    double      decay_width,
+    SpinStat    spin_stat,
+    std::size_t decay_channels
+)
+{
+	m_pid         = pid;
+	m_mass        = mass;
+	m_degeneracy  = degeneracy;
+	m_decay_width = decay_width;
+	m_spin_stat   = spin_stat;
+	m_reaction_infos.reserve(decay_channels);
+}
+
 inline void
-Particle::finish_time_step(void)
+Particle::finalize_time_step(void)
 {
 	m_density += (k1 + 2.0 * k2 + 2.0 * k3 + k4) / 6.0;
 	k1 = k2 = k3 = k4 = 0.0;

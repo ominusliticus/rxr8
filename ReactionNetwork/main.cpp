@@ -19,6 +19,8 @@ main()
 	auto entries = split_string(" a");
 	print(entries);
 
-	ReactionNetwork rn("./decays_PDG21_massorder.dat");
+	std::string_view data_sheet{ "../input/PDG21Plus/hadron_lists/PDG21Plus/PDG21Plus_massorder.dat" };
+	std::string_view decay_sheet{ "../input/PDG21Plus/hadron_lists/PDG21Plus/full_decays/decays_PDG21_massorder.dat" };
+	ReactionNetwork  rn(data_sheet, decay_sheet);
 	return 0;
 }

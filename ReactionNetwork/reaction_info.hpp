@@ -27,7 +27,8 @@ struct ReactionInfo {
 	/// for a reaction of type `type`. The expected order of the parameters is as follows
 	/// 	- Type::DECAY:
 	///         Expected arguments: (current_density,)
-	void calculate(double density, double eq_density, double dt, double temperature, RK4Stage);
+	void calculate(double density, double eq_density, double dt, double temperature, RK4Stage stage);
+	void calculate(double density, double eq_density, double dt, double temperature, RK4Stage stage) const;
 
 	ReactionType                           reaction_type;
 	double                                 reaction_rate;
