@@ -1,7 +1,7 @@
 #include "reaction_info.hpp"
 #include "particle.hpp"
 
-inline void
+void
 ReactionInfo::calculate(double density, double eq_density, double dt, double temperature, RK4Stage stage)
 {
 	switch (reaction_type)
@@ -30,7 +30,7 @@ ReactionInfo::calculate(double density, double eq_density, double dt, double tem
 	}
 }
 
-inline void
+void
 ReactionInfo::calculate(double density, double eq_density, double dt, double temperature, RK4Stage stage) const
 {
 	switch (reaction_type)

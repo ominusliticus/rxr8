@@ -17,7 +17,7 @@ Particle::Particle(
 	m_reaction_infos.reserve(decay_channels);
 }
 
-inline void
+void
 Particle::finalize_time_step(void)
 {
 	m_density += (k1 + 2.0 * k2 + 2.0 * k3 + k4) / 6.0;
@@ -25,7 +25,7 @@ Particle::finalize_time_step(void)
 	m_already_visited = false;
 }
 
-inline void
+void
 Particle::update(double delta_density, double dt, RK4Stage stage)
 {
 	switch (stage)
