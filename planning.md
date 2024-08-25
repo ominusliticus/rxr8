@@ -177,7 +177,7 @@ Returns a handle to the reactions for the `std::vector` of `ReactionInfo`s
 ##### Signature and return value
 
 ```c++
-get_reactions(void) -> std::vector<ReactionInfo>&
+get_reactions(void) const -> std::vector<ReactionInfo> const&
 ```
 
 <!-- ==================================================================== -->

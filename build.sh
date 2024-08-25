@@ -24,3 +24,10 @@ done
 
 build_artifacts=`ls -1`
 $compiler $flags -o main $build_artifacts ${src_dir}/main.cpp 
+
+if [ "$1" = "debug" ];
+then
+    gdb ./main
+else
+    ./main
+fi

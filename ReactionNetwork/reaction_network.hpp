@@ -27,6 +27,10 @@ class ReactionNetwork
 	void time_step(double dt, double temperature);
 	void finalize_time_step();
 
+	double get_particle_density(long pid) { return m_particles[pid]->get_density(); }
+
+	auto& get_particle_list() { return m_particles; }
+
 	private:
 	std::unordered_map<long, std::shared_ptr<Particle>> m_particles;
 };

@@ -14,6 +14,7 @@ Particle::Particle(
 	m_degeneracy  = degeneracy;
 	m_decay_width = decay_width;
 	m_spin_stat   = spin_stat;
+	m_density     = 0.0;
 	m_reaction_infos.reserve(decay_channels);
 }
 
@@ -21,8 +22,8 @@ void
 Particle::finalize_time_step(void)
 {
 	m_density += (k1 + 2.0 * k2 + 2.0 * k3 + k4) / 6.0;
-	k1 = k2 = k3 = k4 = 0.0;
-	m_already_visited = false;
+	k1 = k2 = k3 = k4       = 0.0;
+	m_eq_density_calculated = false;
 }
 
 void
@@ -56,7 +57,7 @@ Particle::update(double delta_density, double dt, RK4Stage stage)
 double
 Particle::get_eq_density(double temperature)
 {
-	if (m_already_visited) return m_eq_density;
+	if (m_eq_density_calculated) return m_eq_density;
 
 	m_eq_density = gauss_quad(
 	    [&](double q) -> double
@@ -97,7 +98,25 @@ Particle::get_eq_density(double temperature)
 	    1e-10,
 	    3
 	);
-	return 0.0;
+
+	m_eq_density_calculated = true;
+	return m_eq_density;
+}
+
+double
+Particle::get_RK4Stage_offset(RK4Stage stage)
+{
+	switch (stage)
+	{
+		case RK4Stage::FIRST :
+			return 0.0;
+		case RK4Stage::SECOND :
+			return 0.5 * k1;
+		case RK4Stage::THIRD :
+			return 0.5 * k2;
+		case RK4Stage::FOURTH :
+			return k3;
+	}
 }
 
 void

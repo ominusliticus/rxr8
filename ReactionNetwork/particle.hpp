@@ -40,9 +40,12 @@ class Particle
 
 	double get_density(void) { return m_density; }
 
+	int get_pid(void) { return m_pid; }
+
 	void   update(double delta_density, double dt, RK4Stage stage);
 	void   finalize_time_step(void);
 	double get_eq_density(double temperature);
+	double get_RK4Stage_offset(RK4Stage stage);
 	void   add_reaction(ReactionInfo&& info);
 
 	std::vector<ReactionInfo> const& get_reactions(void) const { return m_reaction_infos; }
@@ -64,5 +67,5 @@ class Particle
 	double                    m_decay_width;
 	double                    m_degeneracy;
 	std::vector<ReactionInfo> m_reaction_infos;
-	bool                      m_already_visited{ false };
+	bool                      m_eq_density_calculated{ false };
 };

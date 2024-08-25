@@ -4,6 +4,14 @@
 #include "reaction_network.hpp"
 #include "string_utility.hpp"
 
+#include <filesystem>
+
+double
+ideal_hydro_temp(double tau, double tau_0, double T_0)
+{
+	return T_0 * std::exp(4.0 / 3.0 * std::log(tau_0 / tau));
+}
+
 int
 main()
 {
@@ -19,8 +27,26 @@ main()
 	auto entries = split_string(" a");
 	print(entries);
 
-	std::string_view data_sheet{ "../input/PDG21Plus/hadron_lists/PDG21Plus/PDG21Plus_massorder.dat" };
-	std::string_view decay_sheet{ "../input/PDG21Plus/hadron_lists/PDG21Plus/full_decays/decays_PDG21_massorder.dat" };
+	auto cwd{ std::filesystem::current_path() };
+	auto hadron_list{ cwd / "../input/PDG21Plus/hadron_lists/PDG21Plus/PDG21Plus_massorder.dat" };
+	auto decays_list{ cwd / "../input/PDG21Plus/hadron_lists/PDG21Plus/full_decays/decays_PDG21Plus_massorder.dat" };
+	// auto             hadron_list{ cwd / "../test/particles.dat" };
+	// auto             decays_list{ cwd / "../test/decays.dat" };
+	std::string_view data_sheet{ hadron_list.c_str() };
+	std::string_view decay_sheet{ decays_list.c_str() };
 	ReactionNetwork  rn(data_sheet, decay_sheet);
+	print(rn.get_particle_list()[111]->get_reactions().size());
+	for (auto const& reaction : rn.get_particle_list()[111]->get_reactions())
+		print("   ", reaction.products.size(), reaction.products[0]->get_pid(), reaction.reactants[0]->get_pid());
+
+	double tau_0{ 0.1 };
+	double dtau{ tau_0 / 20.0 };
+	double tau_f{ 3.0 };
+
+	for (auto tau = tau_0; tau <= tau_f; tau += dtau)
+	{
+		rn.time_step(dtau, ideal_hydro_temp(tau, tau_0, 156));
+		print(tau, rn.get_particle_density(311));
+	}
 	return 0;
 }
