@@ -17,19 +17,14 @@ ReactionInfo::calculate(std::shared_ptr<Particle> particle, double dt, double te
 			// Contribution form inverse decays
 			auto from_inv_decays = 1.0;
 			for (auto product : products)
-			{
 				from_inv_decays *= product->get_density() / product->get_eq_density(temperature);
-			}
 
 			// Combine using dn/dt = Gamma n_eq (-n / n_eq + n1 n2 / (n1_eq n2_eq))
 			// Which updates the current particles abundance
 			auto delta_density = reaction_rate * eq_density * (from_inv_decays - from_decays);
 
-			// add thermal production from medium
-			auto delta_density_plus_thermal = delta_density + eq_density;
-
 			// update rk4 stage
-			particle->update(delta_density_plus_thermal, dt, stage);
+			particle->update(delta_density, dt, stage);
 			for (auto product : products)
 				product->update(-delta_density, dt, stage);
 		}
@@ -52,33 +47,16 @@ ReactionInfo::calculate(std::shared_ptr<Particle> particle, double dt, double te
 			// Contribution form inverse decays
 			auto from_inv_decays = 1.0;
 			for (auto product : products)
-			{
 				from_inv_decays *= product->get_density() / product->get_eq_density(temperature);
-			}
 
 			// Combine using dn/dt = Gamma n_eq (-n / n_eq + n1 n2 / (n1_eq n2_eq))
 			// Which updates the current particles abundance
 			auto delta_density = reaction_rate * eq_density * (from_inv_decays - from_decays);
 
-			// add thermal production from medium
-			auto delta_density_plus_thermal = delta_density + eq_density;
-
 			// update rk4 stage
-			particle->update(delta_density_plus_thermal, dt, stage);
+			particle->update(delta_density, dt, stage);
 			for (auto product : products)
-			{
-				// if (product->get_pid() == 111 && delta_density > 0)
-				// print(
-				// particle->get_pid(),
-				// particle->get_density(),
-				// eq_density,
-				// reaction_rate,
-				// from_inv_decays,
-				// from_decays,
-				// delta_density
-				// );
 				product->update(-delta_density, dt, stage);
-			}
 		}
 	}
 }

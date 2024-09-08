@@ -66,6 +66,13 @@ ReactionNetwork::ReactionNetwork(std::string_view particle_datasheet, std::strin
 	// build_minimum_spanning_tree(m_dict[first_pid]);
 }
 
+void
+ReactionNetwork::initialize_system(double tau_0, double temperature)
+{
+	for (auto [kye, particle] : m_particles)
+		particle->set_density(particle->get_eq_density(temperature));
+}
+
 /// @brief Preforms a partial time integration step of the Runge-Kutta 4th order algorithm
 /// @param double dt size of single time time step
 /// @param RK4Stage value from the enum class indicating which stage in the Runge-Kutta fourth order scheme to perform

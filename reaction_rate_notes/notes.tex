@@ -1,0 +1,45 @@
+\documentclass{article}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage[margin=1in]{geometry}
+
+\begin{document}
+	\title{Notes on Reaction Rates}
+	\author{Kevin Ingles}
+	\date{}
+	\maketitle
+	
+	A system of reaction rate equations can compactly be written as
+	\begin{equation}
+		\label{eq:general-rr-1}
+		\frac{d \mathfrak n_i}{dt}
+		=
+		\sum_J \left\lbrack 
+			\mathcal G_{J\to i} \prod_{j\in J} \mathfrak n_j
+			-
+			\mathcal L_{i\to J} \mathfrak n_i
+		\right\rbrack.
+	\end{equation}
+	where $N_i$ is the number for particle species $i$, $\mathcal G_{J\to i}$ and $\mathcal J_{i\to J}$ represent the reaction rates for the \emph{gain} and \emph{loss} terms, respectively, and $J$ is an index set containing the indices for the particle species participating in the reaction.
+	
+	The density, $\mathfrak n$, can be expressed as a ration of the number of particles $N$ in a system of volume $V$; both $N$ and $V$ can be time dependent.
+	Applying the chain rule gives
+	\begin{equation}
+		\frac{dN}{dt}
+		=
+		V(t) \frac{d\mathfrak n}{dt} + \mathfrak n(t) \frac{d V}{dt},
+		\qquad
+		\frac{d \mathfrak n_i}{dt}
+		=
+		\sum_J \left\lbrack 
+		\mathcal G_{J\to i} \prod_{j\in J} \mathfrak n_j
+		-
+		\mathcal L_{i\to J} \mathfrak n_i
+		\right\rbrack.
+	\end{equation}
+	The general reaction rate, Eq.~\eqref{eq:general-rr-1}, then needs to be modified to take into account the changing volume.
+	A convenient trick is to choose a special spices $i^\ast$ and evolve the rations $x_j = \mathfrak n_j / \mathfrak n_{i^\ast}$.
+	For all 
+	% \begin{equation}
+\end{document}

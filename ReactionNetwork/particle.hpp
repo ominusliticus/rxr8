@@ -40,6 +40,8 @@ class Particle
 
 	double get_density(void) { return m_density; }
 
+	void set_density(double density) { m_density = density; }
+
 	int get_pid(void) { return m_pid; }
 
 	void   update(double delta_density, double dt, RK4Stage stage);

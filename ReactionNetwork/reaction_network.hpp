@@ -24,6 +24,7 @@ class ReactionNetwork
 	ReactionNetwork() = default;
 	ReactionNetwork(std::string_view particle_datasheet, std::string_view particle_reactions);
 
+	void initialize_system(double tau_0, double temperature);
 	void time_step(double dt, double temperature);
 	void finalize_time_step();
 

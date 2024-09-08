@@ -41,12 +41,14 @@ main()
 
 	double tau_0{ 0.1 };
 	double dtau{ tau_0 / 20.0 };
-	double tau_f{ 3.0 };
+	double tau_f{ 20.0 };
+	double temperature{ 0.500 };
 
+	rn.initialize_system(tau_0, temperature);
 	for (auto tau = tau_0; tau <= tau_f; tau += dtau)
 	{
-		rn.time_step(dtau, ideal_hydro_temp(tau, tau_0, 156));
-		print(tau, rn.get_particle_density(311));
+		rn.time_step(dtau, ideal_hydro_temp(tau, tau_0, temperature));
+		print(tau, rn.get_particle_density(111));
 	}
 	return 0;
 }
